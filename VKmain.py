@@ -11,154 +11,165 @@ from messages import *
 
 
 class VkUser:
- """Класс, использующий токен пользователя, для получения информации при помощи VK API."""
- def get_params(self, add_params: dict = None):
- """Возвращает параметры для соответствующего метода API.
+    """Класс, использующий токен пользователя, для получения информации при помощи VK API."""
 
- Подробнее в документации VK API <https://dev.vk.com/api/api-requests>.
+    def get_params(self, add_params: dict = None):
 
- :param add_params: Входные параметры. Опционально.
- :type add_params: dict
-        """
- params = {
- 'access_token': user_access_token,
- 'v': '5.131'
-        }
- if add_params:
- params.update(add_params)
- pass
- return params
+        """Возвращает параметры для соответствующего метода API.
 
- def get_user_name(self, user_id):
- """Возвращает имя и фамилию пользователя vk.
+        Подробнее в документации VK API <https://dev.vk.com/api/api-requests>.
 
- Подробнее в документации VK API <https://dev.vk.com/method/users.get>.
+        :param add_params: Входные параметры. Опционально.
+        :type add_params: dict
+               """
+    params = {
+        'access_token': user_access_token,
+        'v': '5.131'
+    }
+    if add_params:
+        params.update(add_params)
+    pass
+    return params
 
- :param user_id: Идентификатор пользователя vk.
- :type user_id: int
-        """
- response = requests.get(
- 'https://api.vk.com/method/users.get',
- self.get_params({'user_ids': user_id})
-        )
- try:
- for user_info in response.json()['response']:
- first_name = user_info['first_name']
- last_name = user_info['last_name']
- return first_name, last_name
- except:
- print(f"Не удалось получить имя пользователя для {user_id}: {response.json()['error']['error_msg']}")
- VkBot().write_msg(user_id, 'Ошибка с нашей стороны. Попробуйте позже.')
- db.update(user_id, db.UserPosition, position=1, offset=0)
- return False
+    def get_user_name(self, user_id):
 
- def get_city(self, city):
- """Возвращает идентификатор города.
+        """Возвращает имя и фамилию пользователя vk.
 
- Подробнее в документации VK API <https://dev.vk.com/method/database.getCities>.
+        Подробнее в документации VK API <https://dev.vk.com/method/users.get>.
 
- :param city: Город, полученный в сообщении от пользователя вк.
- :type city: str
-        """
- response = requests.get(
- 'https://api.vk.com/method/database.getCities',
- self.get_params({'country_id': 1, 'count': 1, 'q': city})
-        )
-        try:
- response = response.json()['response']['items']
- if not response:
- VkBot().write_msg(user_id, city_unknown)
- city = False
- else:
- for city_id in response:
- city = city_id['id']
- except:
- print(f"Не удалось получить город пользователя для {user_id}: {response.json()['error']['error_msg']}")
- VkBot().write_msg(user_id, 'Ошибка с нашей стороны. Попробуйте позже.')
- db.update(user_id, db.UserPosition, position=1, offset=0)
- city = False
- return city
+        :param user_id: Идентификатор пользователя vk.
+        :type user_id: int
+               """
+    response = requests.get(
+        'https://api.vk.com/method/users.get',
+        self.get_params({'user_ids': user_id})
+    )
+    try:
+        for user_info in response.json()['response']:
+        first_name = user_info['first_name']
+    last_name = user_info['last_name']
+    return first_name, last_name
+    except:
+    print(f"Не удалось получить имя пользователя для {user_id}: {response.json()['error']['error_msg']}")
+    VkBot().write_msg(user_id, 'Ошибка с нашей стороны. Попробуйте позже.')
+    db.update(user_id, db.UserPosition, position=1, offset=0)
+    return False
 
- def get_top_photos(self, partner_id):
- """Возвращает список из ссылок на три самые популярные фотографии пользователя.
+    def get_city(self, city):
 
- Подробнее в документации VK API <https://dev.vk.com/method/photos.get>.
+        """Возвращает идентификатор города.
 
-        :param partner_id: Идентификатор пользователя vk.
-        :type partner_id: int
-        """
-        photos = []
-        response = requests.get(
-            'https://api.vk.com/method/photos.get',
-            self.get_params({'owner_id': partner_id,
-                             'album_id': 'profile',
-                             'extended': 1,
-                             'count': 255}
-                            )
-        )
-        try:
-            sorted_response = sorted(response.json()['response']['items'],
-                                     key=lambda x: x['likes']['count'], reverse=True)
-            for photo_id in sorted_response:
-                photos.append(f'''photo{partner_id}_{photo_id['id']}''')
-            top_photos = ','.join(photos[:3])
-            return top_photos
-        except:
-            print(f"Не удалось получить список фотографий для {user_id}: {response.json()['error']['error_msg']}")
-            VkBot().write_msg(user_id, 'Ошибка с нашей стороны. Попробуйте позже.')
-            db.update(user_id, db.UserPosition, position=1, offset=0)
-            return False
+        Подробнее в документации VK API <https://dev.vk.com/method/database.getCities>.
 
-    def find_partner(self):
-        """Метод для поиска потенциального партнера в вк и добавление его в базу данных.
+        :param city: Город, полученный в сообщении от пользователя вк.
+        :type city: str
+               """
+    response = requests.get(
+        'https://api.vk.com/method/database.getCities',
+        self.get_params({'country_id': 1, 'count': 1, 'q': city})
+    )
+    try:
 
-        Подробнее в документации VK API <https://dev.vk.com/method/users.search>.
-        """
-        db_user_id = db.get_db_id(user_id)
-        city = db.get_city(user_id)
-        sex = db.get_sex(user_id)
-        age_from = db.get_age_from(user_id)
-        age_to = db.get_age_to(user_id)
-        offset = db.get_offset(user_id)
-        response = requests.get(
-            'https://api.vk.com/method/users.search',
-            self.get_params({'count': 1,
-                             'offset': offset,
-                             'city': city,
-                             'country': 1,
-                             'sex': sex,
-                             'age_from': age_from,
-                             'age_to': age_to,
-                             'fields': 'is_closed',
-                             'status': 6,
-                             'has_photo': 1}
-                            )
-        )
-        try:
-            response = response.json()['response']['items']
-            for partner in response:
-                private = partner['is_closed']
-                avoid_list = db.avoid_list(db_user_id)
-                if private or partner['id'] in avoid_list:
-                    offset += 1
-                    db.update(user_id, db.UserPosition, offset=offset)
-                    self.find_partner()
-                else:
-                    partner_id = partner['id']
-                    first_name = partner['first_name']
-                    last_name = partner['last_name']
-                    offset += 1
-                    db.update(user_id, db.UserPosition, offset=offset)
-                    VkBot().offer_partner(partner_id, first_name, last_name)
-        except:
-            print(f"Не удалось найти партнера для {user_id}: {response.json()['error']['error_msg']}")
-            VkBot().write_msg(user_id, 'Ошибка с нашей стороны. Попробуйте позже.')
-            db.update(user_id, db.UserPosition, position=1, offset=0)
-            return
+
+response = response.json()['response']['items']
+if not response:
+    VkBot().write_msg(user_id, city_unknown)
+city = False
+else:
+for city_id in response:
+    city = city_id['id']
+except:
+print(f"Не удалось получить город пользователя для {user_id}: {response.json()['error']['error_msg']}")
+VkBot().write_msg(user_id, 'Ошибка с нашей стороны. Попробуйте позже.')
+db.update(user_id, db.UserPosition, position=1, offset=0)
+city = False
+return city
+
+
+def get_top_photos(self, partner_id):
+
+
+    """Возвращает список из ссылок на три самые популярные фотографии пользователя.
+
+    Подробнее в документации VK API <https://dev.vk.com/method/photos.get>.
+
+           :param partner_id: Идентификатор пользователя vk.
+           :type partner_id: int
+           """
+photos = []
+response = requests.get(
+    'https://api.vk.com/method/photos.get',
+    self.get_params({'owner_id': partner_id,
+                     'album_id': 'profile',
+                     'extended': 1,
+                     'count': 255}
+                    )
+)
+try:
+    sorted_response = sorted(response.json()['response']['items'],
+                             key=lambda x: x['likes']['count'], reverse=True)
+    for photo_id in sorted_response:
+        photos.append(f'''photo{partner_id}_{photo_id['id']}''')
+    top_photos = ','.join(photos[:3])
+    return top_photos
+except:
+    print(f"Не удалось получить список фотографий для {user_id}: {response.json()['error']['error_msg']}")
+    VkBot().write_msg(user_id, 'Ошибка с нашей стороны. Попробуйте позже.')
+    db.update(user_id, db.UserPosition, position=1, offset=0)
+    return False
+
+
+def find_partner(self):
+    """Метод для поиска потенциального партнера в вк и добавление его в базу данных.
+
+    Подробнее в документации VK API <https://dev.vk.com/method/users.search>.
+    """
+    db_user_id = db.get_db_id(user_id)
+    city = db.get_city(user_id)
+    sex = db.get_sex(user_id)
+    age_from = db.get_age_from(user_id)
+    age_to = db.get_age_to(user_id)
+    offset = db.get_offset(user_id)
+    response = requests.get(
+        'https://api.vk.com/method/users.search',
+        self.get_params({'count': 1,
+                         'offset': offset,
+                         'city': city,
+                         'country': 1,
+                         'sex': sex,
+                         'age_from': age_from,
+                         'age_to': age_to,
+                         'fields': 'is_closed',
+                         'status': 6,
+                         'has_photo': 1}
+                        )
+    )
+    try:
+        response = response.json()['response']['items']
+        for partner in response:
+            private = partner['is_closed']
+            avoid_list = db.avoid_list(db_user_id)
+            if private or partner['id'] in avoid_list:
+                offset += 1
+                db.update(user_id, db.UserPosition, offset=offset)
+                self.find_partner()
+            else:
+                partner_id = partner['id']
+                first_name = partner['first_name']
+                last_name = partner['last_name']
+                offset += 1
+                db.update(user_id, db.UserPosition, offset=offset)
+                VkBot().offer_partner(partner_id, first_name, last_name)
+    except:
+        print(f"Не удалось найти партнера для {user_id}: {response.json()['error']['error_msg']}")
+        VkBot().write_msg(user_id, 'Ошибка с нашей стороны. Попробуйте позже.')
+        db.update(user_id, db.UserPosition, position=1, offset=0)
+        return
 
 
 class VkBot:
     """Класс, использующий токен группы, для общения с пользователем."""
+
     def __init__(self):
         self.commands = ['привет, прив, ghbdtn, hi, hello, здравствуйте, хай',
                          'старт, поехали, начать, го, go, start, cnfhn',
@@ -230,8 +241,8 @@ class VkBot:
         :type last_name: str
         """
         db_user_id = db.get_db_id(user_id)
-        message = f'Имя: {first_name}\n'\
-                  f'Фамилия: {last_name}\n'\
+        message = f'Имя: {first_name}\n' \
+                  f'Фамилия: {last_name}\n' \
                   f'Ссылка: @id{partner_id}'
         top_photos = VkUser().get_top_photos(partner_id)
         if top_photos:

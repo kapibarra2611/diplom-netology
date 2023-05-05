@@ -6,7 +6,6 @@ import sqlalchemy as sq
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
-
 Base = declarative_base()
 engine = sq.create_engine('postgresql://username:password@localhost:5432/VKinder')
 Session = sessionmaker(bind=engine)
@@ -14,66 +13,72 @@ session = Session()
 
 
 class User(Base):
- """Таблица для хранения информации о пользователе: идентификатор строки в базе данных, идентификатор vk, фамилия,
- имя, предпочитаемый возрастной диапазон партнера, предпочитаемый пол партнера и город.
-    """
- __tablename__ = 'user'
- id = sq.Column(sq.Integer, primary_key=True)
- vk_id = sq.Column(sq.Integer)
- first_name = sq.Column(sq.String)
- last_name = sq.Column(sq.String)
- age_from = sq.Column(sq.Integer)
- age_to = sq.Column(sq.Integer)
- target_gender = sq.Column(sq.Integer)
- city = sq.Column(sq.String)
+    """Таблица для хранения информации о пользователе: идентификатор строки в базе данных, идентификатор vk, фамилия,
+    имя, предпочитаемый возрастной диапазон партнера, предпочитаемый пол партнера и город.
+       """
+    __tablename__ = 'user'
+    id = sq.Column(sq.Integer, primary_key=True)
+    vk_id = sq.Column(sq.Integer)
+    first_name = sq.Column(sq.String)
+    last_name = sq.Column(sq.String)
+    age_from = sq.Column(sq.Integer)
+    age_to = sq.Column(sq.Integer)
+    target_gender = sq.Column(sq.Integer)
+    city = sq.Column(sq.String)
 
 
 class Partner(Base):
- """Таблица для хранения информации о партнере: идентификатор строки в базе данных, идентификатор vk, фамилия, имя
- и идентификатор пользователя в базе данных.
-    """
- __tablename__ = 'partner'
+    """Таблица для хранения информации о партнере: идентификатор строки в базе данных, идентификатор vk, фамилия, имя
+    и идентификатор пользователя в базе данных.
+       """
+    __tablename__ = 'partner'
     id = sq.Column(sq.Integer, primary_key=True)
     vk_id = sq.Column(sq.Integer)
     first_name = sq.Column(sq.String)
     last_name = sq.Column(sq.String)
- id_User = sq.Column(sq.Integer, sq.ForeignKey('user.id'))
- user = relationship(User)
+
+
+id_User = sq.Column(sq.Integer, sq.ForeignKey('user.id'))
+user = relationship(User)
 
 
 class Favorite(Base):
- """Таблица для хранения информации об избранном партнере: идентификатор строки в базе данных, идентификатор vk,
- фамилия, имя и идентификатор пользователя в базе данных.
-    """
- __tablename__ = 'favorite'
+    """Таблица для хранения информации об избранном партнере: идентификатор строки в базе данных, идентификатор vk,
+    фамилия, имя и идентификатор пользователя в базе данных.
+       """
+    __tablename__ = 'favorite'
     id = sq.Column(sq.Integer, primary_key=True)
     vk_id = sq.Column(sq.Integer)
     first_name = sq.Column(sq.String)
     last_name = sq.Column(sq.String)
     id_User = sq.Column(sq.Integer, sq.ForeignKey('user.id'))
- user = relationship(User)
+
+
+user = relationship(User)
 
 
 class UserPosition(Base):
- """Таблица для хранения информации о позиции пользователя в треде: идентификатор строки в базе данных,
- идентификатор пользователя в базе данных, идентификатор vk, позиция в треде и смещение относительно первого
- найденного пользователя.
-    """
- __tablename__ = 'user_position'
+    """Таблица для хранения информации о позиции пользователя в треде: идентификатор строки в базе данных,
+    идентификатор пользователя в базе данных, идентификатор vk, позиция в треде и смещение относительно первого
+    найденного пользователя.
+       """
+    __tablename__ = 'user_position'
     id = sq.Column(sq.Integer, primary_key=True)
     id_User = sq.Column(sq.Integer, sq.ForeignKey('user.id'))
     vk_id = sq.Column(sq.Integer)
- position = sq.Column(sq.SmallInteger)
- offset = sq.Column(sq.SmallInteger)
- user = relationship(User)
+
+
+position = sq.Column(sq.SmallInteger)
+offset = sq.Column(sq.SmallInteger)
+user = relationship(User)
 
 
 def create_tables():
- """Создание таблиц, если они отсутствуют."""
- try:
- Base.metadata.create_all(engine)
- except Exception as e:
-        print(e)
+    """Создание таблиц, если они отсутствуют."""
+    try:
+        Base.metadata.create_all(engine)
+    except Exception as e:
+    print(e)
 
 
 def add_user(user):

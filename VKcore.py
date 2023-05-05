@@ -5,8 +5,7 @@ from VKconfig import acces_token
 
 class VkTools():
     def __init__(self, acces_token):
-        self.api = vk_api.VkApi(token=vk1.a.9d9WQ-8U-rzFIB2r7ZhJqaycw5ebYk7crXLhSyhue2ASDHPyxAvoY3trnJy90phhEdpHcYKoya9NjdEyGm6jyRlMCI8JNQshFYAwXy2GxoYdtX7dtJ8HXPZHbd_vVgoUtEDWxvAo7OgZvmPQFkcz2degZ_RJnThDcaiMbgikRtm-HV4mzZPBr8ECrD_id1X-9DS7RQIVBYR6Afe0YNJAOw
-)
+        self.api = vk_api.VkApi(token=acces_token)
 
     def get_profile_info(self, user_id):
 
